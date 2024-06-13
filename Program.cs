@@ -49,6 +49,6 @@ app.MapGet("/", async (AppDbContext dbContext) =>
     return Results.Ok(new { Message = "Entry added successfully with random data.", Data = randomData, Count = count });
 });
 
-app.MapGet("/status", () => Results.Ok("UP"));
+app.MapGet("/status", () => Results.Ok(new { status = "UP"});
 
 app.Run();
