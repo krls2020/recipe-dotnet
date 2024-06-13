@@ -1,13 +1,13 @@
 zerops:
   - setup: api
     build:
-      os: ubuntu
+#      os: ubuntu
       base: dotnet@6
       buildCommands:
         - dotnet build -o app
       deployFiles: app/~
     run:
-      os: ubuntu
+#      os: ubuntu
       base: dotnet@6
       start: dotnet dotnet.dll
       ports:
