@@ -14,7 +14,7 @@ You can either click the deploy button to deploy directly on Zerops, or manually
 <br/>
 
 ## Recipe features
-- **.Net 3.12** on **Zerops .Net** service
+- **.Net 6** on **Zerops .Net** service
 - Zerops **PostgreSQL 16** service as database
 - Healthcheck setup example
 - Utilization of Zerops' built-in **environment variables** system
