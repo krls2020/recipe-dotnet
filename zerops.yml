@@ -7,7 +7,7 @@ zerops:
       deployFiles: app/~
     run:
       base: dotnet@6
-      start: dotnet dnet.dll
+      start: dotnet dotnet.dll
       ports:
         - port: 5000
           httpSupport: true
