@@ -1,10 +1,16 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Přidání logování
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 string dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
 string dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
@@ -20,35 +26,68 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.EnsureCreated();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    var connection = dbContext.Database.GetDbConnection();
-    await connection.OpenAsync();
-    var command = connection.CreateCommand();
+    logger.LogInformation("Checking database connection...");
 
-    command.CommandText = @"
-        SELECT EXISTS (
-            SELECT FROM information_schema.tables
-            WHERE table_schema = 'public' AND table_name = 'entries'
-        );";
-    var exists = (bool)await command.ExecuteScalarAsync();
-    if (!exists)
+    try
     {
-        command.CommandText = "CREATE TABLE public.\"entries\" (\"Id\" SERIAL PRIMARY KEY, \"Data\" TEXT NOT NULL);";
-        await command.ExecuteNonQueryAsync();
+        dbContext.Database.EnsureCreated();
+        logger.LogInformation("Database ensured to be created.");
+
+        var connection = dbContext.Database.GetDbConnection();
+        await connection.OpenAsync();
+        logger.LogInformation("Database connection opened.");
+
+        var command = connection.CreateCommand();
+
+        command.CommandText = @"
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = 'entries'
+            );";
+        var exists = (bool)await command.ExecuteScalarAsync();
+        logger.LogDebug("Check if 'entries' table exists: {exists}", exists);
+
+        if (!exists)
+        {
+            command.CommandText = "CREATE TABLE public.\"entries\" (\"Id\" SERIAL PRIMARY KEY, \"Data\" TEXT NOT NULL);";
+            await command.ExecuteNonQueryAsync();
+            logger.LogInformation("Table 'entries' created.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while setting up the database.");
     }
 }
 
-app.MapGet("/", async (AppDbContext dbContext) =>
+app.MapGet("/", async (AppDbContext dbContext, ILogger<Program> logger) =>
 {
-    var randomData = Guid.NewGuid().ToString();
-    dbContext.Entries.Add(new Entry { Data = randomData });
-    await dbContext.SaveChangesAsync();
+    logger.LogInformation("Handling request for '/' endpoint.");
 
-    var count = await dbContext.Entries.CountAsync();
-    return Results.Ok(new { Message = "Entry added successfully with random data.", Data = randomData, Count = count });
+    try
+    {
+        var randomData = Guid.NewGuid().ToString();
+        dbContext.Entries.Add(new Entry { Data = randomData });
+        await dbContext.SaveChangesAsync();
+
+        var count = await dbContext.Entries.CountAsync();
+        logger.LogDebug("New entry added. Total count: {count}", count);
+
+        return Results.Ok(new { Message = "Entry added successfully with random data.", Data = randomData, Count = count });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while handling the request.");
+        return Results.Problem("An error occurred while processing your request.");
+    }
 });
 
-app.MapGet("/status", () => Results.Ok(new { status = "UP"});
+app.MapGet("/status", (ILogger<Program> logger) =>
+{
+    logger.LogInformation("Handling request for '/status' endpoint.");
+    return Results.Ok(new { status = "UP" });
+});
 
 app.Run();
