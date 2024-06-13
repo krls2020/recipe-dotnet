@@ -7,11 +7,6 @@ using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Přidání logování
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
-
 string dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
 string dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
 string dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "user";
@@ -23,17 +18,8 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 
 var app = builder.Build();
 
-// Vytvoření logovací služby
 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 var logger = loggerFactory.CreateLogger<Program>();
-
-// Ukázkové logování všech úrovní
-logger.LogTrace("This is a trace message");
-logger.LogDebug("This is a debug message");
-logger.LogInformation("This is an info message");
-logger.LogWarning("This is a warning message");
-logger.LogError("This is an error message");
-logger.LogCritical("This is a critical message");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -58,7 +44,6 @@ using (var scope = app.Services.CreateScope())
                 WHERE table_schema = 'public' AND table_name = 'entries'
             );";
         var exists = (bool)await command.ExecuteScalarAsync();
-        logger.LogDebug("Check if 'entries' table exists: {exists}", exists);
 
         if (!exists)
         {
@@ -84,7 +69,6 @@ app.MapGet("/", async (AppDbContext dbContext, ILogger<Program> logger) =>
         await dbContext.SaveChangesAsync();
 
         var count = await dbContext.Entries.CountAsync();
-        logger.LogDebug("New entry added. Total count: {count}", count);
 
         return Results.Ok(new { Message = "Entry added successfully with random data.", Data = randomData, Count = count });
     }
@@ -97,7 +81,6 @@ app.MapGet("/", async (AppDbContext dbContext, ILogger<Program> logger) =>
 
 app.MapGet("/status", (ILogger<Program> logger) =>
 {
-    logger.LogInformation("Handling request for '/status' endpoint.");
     return Results.Ok(new { status = "UP" });
 });
 
