@@ -23,10 +23,21 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 
 var app = builder.Build();
 
+// Vytvoření logovací služby
+var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+var logger = loggerFactory.CreateLogger<Program>();
+
+// Ukázkové logování všech úrovní
+logger.LogTrace("This is a trace message");
+logger.LogDebug("This is a debug message");
+logger.LogInformation("This is an info message");
+logger.LogWarning("This is a warning message");
+logger.LogError("This is an error message");
+logger.LogCritical("This is a critical message");
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
     logger.LogInformation("Checking database connection...");
 
