@@ -3,14 +3,11 @@ zerops:
     build:
       base: dotnet@6
       buildCommands:
-        - |
-          cd dotnet
-          dotnet publish -c Release -o publish
-      deployFiles:
-        - ./dotnet/publish/~
+        - dotnet build -o app
+      deployFiles: app/~
     run:
       base: dotnet@6
-      start: dotnet ./dotnet.dll
+      start: dotnet dnet.dll
       ports:
         - port: 5000
           httpSupport: true

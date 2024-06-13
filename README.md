@@ -1,5 +1,5 @@
-# Zerops x Python
-This is the most bare-bones example of Python app running on Zerops.
+# Zerops x .NET
+This is the most bare-bones example of .NET app running on Zerops.
 
 ![dotnet](https://github.com/zeropsio/recipe-shared-assets/blob/main/covers/cover-dotnet.png)
 
@@ -14,7 +14,7 @@ You can either click the deploy button to deploy directly on Zerops, or manually
 <br/>
 
 ## Recipe features
-- **Python 3.12** on **Zerops Python** service
+- **.Net 3.12** on **Zerops .Net** service
 - Zerops **PostgreSQL 16** service as database
 - Healthcheck setup example
 - Utilization of Zerops' built-in **environment variables** system
@@ -25,9 +25,9 @@ You can either click the deploy button to deploy directly on Zerops, or manually
 Base of the recipe is ready for production, the difference comes down to:
 
 - Use highly available version of the PostgreSQL database (change *mode* from *NON_HA* to *HA* in recipe YAML, *db* service section)
-- Use at least two containers for the Python service to achieve high reliability and resilience (add *minContainers: 2* in recipe YAML, *api* service section)
+- Use at least two containers for the .Net service to achieve high reliability and resilience (add *minContainers: 2* in recipe YAML, *api* service section)
 
-Further things to think about when running more complex, highly available Python production apps on Zerops:
+Further things to think about when running more complex, highly available .Net production apps on Zerops:
 
 - Containers are volatile - use Zerops object storage to store your files
 - Use Zerops Redis (KeyDB) for caching, storing sessions and pub/sub messaging
